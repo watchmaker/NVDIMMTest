@@ -10,7 +10,8 @@
 
 enum TestType{
     READ_WRITE_MIX1,
-    READ_WRITE_MIX2
+    READ_WRITE_MIX2,
+    JUST_WRITES
 };
 
 class tester{

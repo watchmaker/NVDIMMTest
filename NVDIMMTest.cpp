@@ -11,8 +11,6 @@
 
 #include "NVDIMMTest.h"
 
-#define SIM_CYCLES 50000000
-
 uint OUTPUT= 1;
 
 using namespace std;
@@ -25,6 +23,10 @@ int main(int argc, char *argv[]){
 	    if(str.compare("READ_WRITE_MIX1") == 0)
 	    {
 		t.run_test(READ_WRITE_MIX1);
+	    }
+	    else if(str.compare("JUST_WRITES") == 0)
+	    {
+		t.run_test(JUST_WRITES);
 	    }
 	}
 	return 0;
@@ -82,7 +84,7 @@ void tester::run_test(TestType test){
 	clock_t start= clock(), end;
 	uint cycle = 0;
 
-	NVDSim::NVDIMM *NVDimm = new NVDSim::NVDIMM(1,"ini/samsung_K9XXG08UXM(pcm).ini","ini/def_system.ini","../NVDIMMTest","");
+	NVDSim::NVDIMM *NVDimm = new NVDSim::NVDIMM(1,"ini/samsung_K9XXG08UXM(gc_test).ini","ini/def_system.ini","../NVDIMMTest","");
 
 	// Set up the callbacks
 	typedef NVDSim::CallbackBase<void,uint,uint64_t,uint64_t> Callback_t;
@@ -95,6 +97,11 @@ void tester::run_test(TestType test){
 	{
 	    MemLeak *temp_test = new MemLeak();
 	    cycle = temp_test->read_write_mix1(NVDimm);
+	}
+	else if(test == JUST_WRITES)
+	{
+	    MemLeak *temp_test = new MemLeak();
+	    cycle = temp_test->just_writes(NVDimm);
 	}
 
 	end= clock();
