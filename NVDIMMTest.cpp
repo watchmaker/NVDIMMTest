@@ -24,9 +24,25 @@ int main(int argc, char *argv[]){
 	    {
 		t.run_test(READ_WRITE_MIX1);
 	    }
+	    if(str.compare("READ_WRITE_MIX2") == 0)
+	    {
+		t.run_test(READ_WRITE_MIX2);
+	    }
 	    else if(str.compare("JUST_WRITES") == 0)
 	    {
 		t.run_test(JUST_WRITES);
+	    }
+	    else if(str.compare("SAME_WRITE") == 0)
+	    {
+		t.run_test(SAME_WRITE);
+	    }
+	    else if(str.compare("WRITE_EVERYWHERE") == 0)
+	    {
+		t.run_test(WRITE_EVERYWHERE);
+	    }
+	    else if(str.compare("READ_EVERYWHERE") == 0)
+	    {
+		t.run_test(READ_EVERYWHERE);
 	    }
 	}
 	return 0;
@@ -34,6 +50,14 @@ int main(int argc, char *argv[]){
 
 void tester::read_cb(uint id, uint64_t address, uint64_t cycle){
 	cout<<"[Callback] read complete: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
+}
+
+void tester::unmapped_cb(uint id, uint64_t address, uint64_t cycle){
+	cout<<"[Callback] unmapped read complete: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
+}
+
+void tester::crit_cb(uint id, uint64_t address, uint64_t cycle){
+	cout<<"[Callback] crit line done: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
 }
 
 void tester::write_cb(uint id, uint64_t address, uint64_t cycle){
@@ -89,6 +113,8 @@ void tester::run_test(TestType test){
 	// Set up the callbacks
 	typedef NVDSim::CallbackBase<void,uint,uint64_t,uint64_t> Callback_t;
 	NVDSim::Callback_t *r = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::read_cb);
+	NVDSim::Callback_t *u = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::unmapped_cb);
+	NVDSim::Callback_t *c = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::crit_cb);
 	NVDSim::Callback_t *w = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::write_cb);
 	NVDSim::Callback_v *p = new NVDSim::Callback<tester, void, uint, vector<vector<double>>, uint64_t>(this, &tester::power_cb);
 	NVDimm->RegisterCallbacks(r, w, p);
@@ -98,10 +124,30 @@ void tester::run_test(TestType test){
 	    MemLeak *temp_test = new MemLeak();
 	    cycle = temp_test->read_write_mix1(NVDimm);
 	}
+	else if(test == READ_WRITE_MIX2)
+	{
+	    MemLeak *temp_test = new MemLeak();
+	    cycle = temp_test->read_write_mix2(NVDimm);
+	}
 	else if(test == JUST_WRITES)
 	{
 	    MemLeak *temp_test = new MemLeak();
 	    cycle = temp_test->just_writes(NVDimm);
+	}
+	else if(test == SAME_WRITE)
+	{
+	    MemLeak *temp_test = new MemLeak();
+	    cycle = temp_test->same_write(NVDimm);
+	}
+	else if(test == WRITE_EVERYWHERE)
+	{
+	    MappedTest *temp_test = new MappedTest();
+	    cycle = temp_test->write_everywhere(NVDimm);
+	}
+	else if(test == READ_EVERYWHERE)
+	{
+	    MappedTest *temp_test = new MappedTest();
+	    cycle = temp_test->read_everywhere(NVDimm);
 	}
 
 	end= clock();
