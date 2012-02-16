@@ -48,33 +48,33 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-void tester::read_cb(uint id, uint64_t address, uint64_t cycle){
-	cout<<"[Callback] read complete: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
+void tester::read_cb(uint id, uint64_t address, uint64_t cycle, bool mapped){
+	cout<<"[Callback] read complete: "<<id<<" "<<address<<" cycle="<<cycle<<" mapped="<<mapped<<"\n";
 }
 
-void tester::unmapped_cb(uint id, uint64_t address, uint64_t cycle){
-	cout<<"[Callback] unmapped read complete: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
+void tester::unmapped_cb(uint id, uint64_t address, uint64_t cycle, bool mapped){
+	cout<<"[Callback] unmapped read complete: "<<id<<" "<<address<<" cycle="<<cycle<<"\n";
 }
 
-void tester::crit_cb(uint id, uint64_t address, uint64_t cycle){
-	cout<<"[Callback] crit line done: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
+void tester::crit_cb(uint id, uint64_t address, uint64_t cycle, bool mapped){
+	cout<<"[Callback] crit line done: "<<id<<" "<<address<<" cycle="<<cycle<<"\n";
 }
 
-void tester::write_cb(uint id, uint64_t address, uint64_t cycle){
-	cout<<"[Callback] write complete: "<<id<<" "<<address<<" cycle="<<cycle<<endl;
+void tester::write_cb(uint id, uint64_t address, uint64_t cycle, bool mapped){
+	cout<<"[Callback] write complete: "<<id<<" "<<address<<" cycle="<<cycle<<"\n";
 }
 
-void tester::power_cb(uint id, vector<vector<double>> data, uint64_t cycle){
-        cout<<"[Callback] Power Data for cycle: "<<cycle<<endl;
-	for(uint i = 0; i < NUM_PACKAGES; i++){
+void tester::power_cb(uint id, vector<vector<double>> data, uint64_t cycle, bool mapped){
+        cout<<"[Callback] Power Data for cycle: "<<cycle<<"\n";
+	for(uint i = 0; i < NVDSim::NUM_PACKAGES; i++){
 	  for(uint j = 0; j < data.size(); j++){
-	    if(DEVICE_TYPE.compare("PCM") == 0){
+	      if(NVDSim::DEVICE_TYPE.compare("PCM") == 0){
 	      if(j == 0){
 		cout<<"    Package: "<<i<<" Idle Energy: "<<data[0][i]<<"\n";
 	      }else if(j == 1){
 		cout<<"    Package: "<<i<<" Access Energy: "<<data[1][i]<<"\n";
 	      }
-	      if(GARBAGE_COLLECT == 1){
+	      if(NVDSim::GARBAGE_COLLECT == 1){
 		if(j == 2){
 		  cout<<"    Package: "<<i<<" Erase Energy: "<<data[2][i]<<"\n";
 		}else if(j == 3){
@@ -108,15 +108,15 @@ void tester::run_test(TestType test){
 	clock_t start= clock(), end;
 	uint cycle = 0;
 
-	NVDSim::NVDIMM *NVDimm = new NVDSim::NVDIMM(1,"ini/samsung_K9XXG08UXM(gc_test).ini","ini/def_system.ini","../NVDIMMTest","");
+	NVDSim::NVDIMM *NVDimm = new NVDSim::NVDIMM(1,"ini/samsung_K9XXG08UXM_gc_test.ini","ini/def_system.ini","../NVDIMMTest","");
 
 	// Set up the callbacks
-	typedef NVDSim::CallbackBase<void,uint,uint64_t,uint64_t> Callback_t;
-	NVDSim::Callback_t *r = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::read_cb);
-	NVDSim::Callback_t *u = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::unmapped_cb);
-	NVDSim::Callback_t *c = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::crit_cb);
-	NVDSim::Callback_t *w = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t>(this, &tester::write_cb);
-	NVDSim::Callback_v *p = new NVDSim::Callback<tester, void, uint, vector<vector<double>>, uint64_t>(this, &tester::power_cb);
+	typedef NVDSim::CallbackBase<void,uint,uint64_t,uint64_t,bool> Callback_t;
+	NVDSim::Callback_t *r = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t, bool>(this, &tester::read_cb);
+	//NVDSim::Callback_t *u = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t, bool>(this, &tester::unmapped_cb);
+	//NVDSim::Callback_t *c = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t, bool>(this, &tester::crit_cb);
+	NVDSim::Callback_t *w = new NVDSim::Callback<tester, void, uint, uint64_t, uint64_t, bool>(this, &tester::write_cb);
+	NVDSim::Callback_v *p = new NVDSim::Callback<tester, void, uint, vector<vector<double>>, uint64_t, bool>(this, &tester::power_cb);
 	NVDimm->RegisterCallbacks(r, w, p);
 	
 	if(test == READ_WRITE_MIX1)

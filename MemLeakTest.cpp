@@ -6,7 +6,7 @@ MemLeak::MemLeak()
 
 uint MemLeak::read_write_mix1(NVDSim::NVDIMM *NVDimm)
 {
-    uint num_writes = 100;
+    uint num_writes = 1000;
 
     NVDSim::FlashTransaction t;
     uint cycle = 0;
@@ -28,7 +28,6 @@ uint MemLeak::read_write_mix1(NVDSim::NVDIMM *NVDimm)
 		// if the queues weren't full, then proceed to adding reads
 		if(result == 1)
 		{
-		    writes++;
 		    mode = 1;
 		}
 	    }
@@ -47,6 +46,7 @@ uint MemLeak::read_write_mix1(NVDSim::NVDIMM *NVDimm)
 		    // if we're done adding reads go back to adding writes
 		    if(mode > 10)
 		    {
+			writes++;
 			mode = 0;
 		    }
 		}
